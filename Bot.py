@@ -1,3 +1,5 @@
+import random
+
 help = """
 add - добавить задачу в список;
 end - закончить выполнение программы;
@@ -5,14 +7,15 @@ help - показать команды;
 random - добавление случайной задачи на сегодня;
 show - показать список дел.
 """
-random_task = "cook"
+random_tasks = ["sport", "grocery", "playing piano", "study"]
 tasks = {}
 
 def add_todo(date, task):
     if date in tasks:
         tasks[date].append(task)
     else:
-        tasks[date] = [task]
+        tasks[date] = []
+        tasks[date].append(task)
 
 
 run = True
@@ -34,8 +37,9 @@ while run:
         add_todo(date, task)
         print("Задача добавлена")
     elif command == "random":
-        add_todo("today", task)
-        print("На сегодня есть одна случайная задача!")
+        random_task = random.choice(random_tasks)
+        add_todo("today", random_task)
+        print("Сегодня есть задача -", random_task, "!")
     elif command == "end":
         break
     else:
