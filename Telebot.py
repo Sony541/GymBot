@@ -1,35 +1,16 @@
 import random
-import json
 import telebot
 from Config import token
-
+from Database import read_help_from_file, read_saves_from_file, write_saves_to_file
 
 # мы создаем переменную bot, в которой будут содержаться те функции, которые нам нужны для обработки и ответа на
 # сообщение
 bot = telebot.TeleBot(token)
 
-HELP = """
-/add - добавить в список;
-/end - закончить выполнение программы;
-/help - вывести список доступных команд;
-/list - выводит список в тэге;
-/show - показать список;
-/save - добавить новый хэштег и/или добавить новую запись в существующий хэштег.
-"""
-
-with open("Help.json", "w") as f:
-    json.dump(HELP, f, indent=4)
-
-with open("Help.json") as f:
-    HELP = json.load(f)
+HELP = read_help_from_file()
+saves = read_saves_from_file()
 
 tasks = {}
-
-
-
-
-with open("Saves.json") as f:
-    saves = json.load(f)
 
 
 # random_tasks = ["sport", "grocery", "playing piano", "study"]
@@ -49,10 +30,6 @@ def save_me(key, note):
     else:
         saves[key] = []
         saves[key].append(note)
-
-def write_saves_to_file():
-    with open("Saves.json", "w") as f:
-        json.dump(saves, f, indent=4)
 
 
 @bot.message_handler(commands=["help"])
@@ -77,7 +54,7 @@ def save(message):
     note = command[2]
     save_me(key, note)
     text = "Запись " + note + " добавлена в хэштег " + key
-    write_saves_to_file()
+    write_saves_to_file(saves)
     bot.send_message(message.chat.id, text)
 
 
@@ -115,7 +92,6 @@ def show_list(message):
     else:
         text = "Такого тэга ещё нет"
     bot.send_message(message.chat.id, text)
-
 
 
 # функция polling начинает отправку запросов в телеграм с заданным токеном и спрашивает, нет ли для него сообщений.
