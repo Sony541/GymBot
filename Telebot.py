@@ -1,8 +1,8 @@
 import random
 import json
 import telebot
+from Config import token
 
-token = '5645737999:AAFguhZtbvmcqosgDV4zO_-Bhu26mI3dG38'
 
 # мы создаем переменную bot, в которой будут содержаться те функции, которые нам нужны для обработки и ответа на
 # сообщение
@@ -12,6 +12,7 @@ HELP = """
 /add - добавить в список;
 /end - закончить выполнение программы;
 /help - вывести список доступных команд;
+/list - выводит список в тэге;
 /show - показать список;
 /save - добавить новый хэштег и/или добавить новую запись в существующий хэштег.
 """
@@ -24,10 +25,8 @@ with open("Help.json") as f:
 
 tasks = {}
 
-saves = {}
 
-with open("Saves.json", "w") as f:
-    json.dump(saves, f, indent=4)
+
 
 with open("Saves.json") as f:
     saves = json.load(f)
@@ -50,6 +49,10 @@ def save_me(key, note):
     else:
         saves[key] = []
         saves[key].append(note)
+
+def write_saves_to_file():
+    with open("Saves.json", "w") as f:
+        json.dump(saves, f, indent=4)
 
 
 @bot.message_handler(commands=["help"])
@@ -74,6 +77,7 @@ def save(message):
     note = command[2]
     save_me(key, note)
     text = "Запись " + note + " добавлена в хэштег " + key
+    write_saves_to_file()
     bot.send_message(message.chat.id, text)
 
 
@@ -87,31 +91,32 @@ def save(message):
 
 
 @bot.message_handler(commands=["show", "print"])
-def show_commands(message):
+def show_tasks(message):
     command = message.text.split(maxsplit=1)
     date = command[1].lower()
     text = ""
     if date in tasks:
         text = date.upper() + "\n"
         for task in tasks[date]:
-            text = text + "[] " + task + "\n"  # \n - перевод строки
+            text = text + "-" + task + "\n"  # \n - перевод строки
     else:
         text = "День свободен"
     bot.send_message(message.chat.id, text)
 
 
-@bot.message_handler(commands=["show", "print"])
-def show_commands(message):
-    command = message.text.split(maxsplit=1)
-    key = command[1].lower()
+@bot.message_handler(commands=["list"])
+def show_list(message):
+    key = message.text.split(maxsplit=1)[1]
     text = ""
     if key in saves:
         text = key.upper() + "\n"
-        for task in tasks[date]:
-            text = text + "[] " + task + "\n"  # \n - перевод строки
+        for note in saves[key]:
+            text = text + "-" + note + "\n"
     else:
-        text = "День свободен"
+        text = "Такого тэга ещё нет"
     bot.send_message(message.chat.id, text)
+
+
 
 # функция polling начинает отправку запросов в телеграм с заданным токеном и спрашивает, нет ли для него сообщений.
 # Если сообщение есть, то вызывается обработка. Long polling - процесс постоянного обращения к серверам
