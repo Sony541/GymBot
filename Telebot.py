@@ -3,7 +3,6 @@ import json
 import telebot
 from Config import token
 
-
 # мы создаем переменную bot, в которой будут содержаться те функции, которые нам нужны для обработки и ответа на
 # сообщение
 bot = telebot.TeleBot(token)
@@ -23,10 +22,8 @@ with open("Help.json", "w") as f:
 with open("Help.json") as f:
     HELP = json.load(f)
 
-tasks = {}
-
-
-
+with open("Tasks.json") as f:
+    tasks = json.load(f)
 
 with open("Saves.json") as f:
     saves = json.load(f)
@@ -43,12 +40,18 @@ def add_todo(date, task):
         tasks[date].append(task)
 
 
+def write_tasks_to_file():
+    with open("Tasks.json", "w") as f:
+        json.dump(tasks, f, indent=4)
+
+
 def save_me(key, note):
     if key in saves:
         saves[key].append(note)
     else:
         saves[key] = []
         saves[key].append(note)
+
 
 def write_saves_to_file():
     with open("Saves.json", "w") as f:
@@ -116,6 +119,17 @@ def show_list(message):
         text = "Такого тэга ещё нет"
     bot.send_message(message.chat.id, text)
 
+
+@bot.message_handler(command=["keys"])
+def show_keys(message):
+
+    bot.send_message(message.chat.id, print(list(saves.keys())))
+
+
+# @bot.message_handler(commands=["done"])
+# def remove_note(message):
+#     key = message.text.split(maxsplit=1)[1]
+#     if key in saves:
 
 
 # функция polling начинает отправку запросов в телеграм с заданным токеном и спрашивает, нет ли для него сообщений.
