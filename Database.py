@@ -1,20 +1,24 @@
 import json
+from time import time
 
-SAVES_FILENAME = "Saves.json"
 HELP_FILENAME = "Help.txt"
+TASKS_FILENAME = "Tasks.json"
+LOG_FILENAME = "Log.json"
 
+def add_exercise(task, weight):
+    o = {
+        "date": time(),
+        "task": task,
+        "weight": weight
+    }
+    append_text(LOG_FILENAME, json.dumps(o))
 
 def read_help_from_file():
     return read_text(HELP_FILENAME)
 
 
-def read_saves_from_file():
-    return read_json(SAVES_FILENAME)
-
-
-def write_saves_to_file(saves):
-    write_json(SAVES_FILENAME, saves)
-
+def read_tasks_from_file():
+    return read_json(TASKS_FILENAME)
 
 # Functions for JSON
 
@@ -39,4 +43,9 @@ def read_text(filename):
 
 def write_text(filename, text):
     with open(filename, "w", encoding="utf-8") as f:
+        f.write(text)
+
+
+def append_text(filename, text):
+    with open(filename, "a", encoding="utf-8") as f:
         f.write(text)

@@ -1,101 +1,55 @@
+import json
 import random
 import telebot
-from Config import token
-from Database import read_help_from_file, read_saves_from_file, write_saves_to_file
 
-# мы создаем переменную bot, в которой будут содержаться те функции, которые нам нужны для обработки и ответа на
-# сообщение
+from Config import token
+from Database import read_help_from_file, read_tasks_from_file, add_exercise
+
 bot = telebot.TeleBot(token)
 
 HELP = read_help_from_file()
-saves = read_saves_from_file()
-
-tasks = {}
-
-
-# random_tasks = ["sport", "grocery", "playing piano", "study"]
-
-
-def add_todo(date, task):
-    if date in tasks:
-        tasks[date].append(task)
-    else:
-        tasks[date] = []
-        tasks[date].append(task)
-
-
-def save_me(key, note):
-    if key in saves:
-        saves[key].append(note)
-    else:
-        saves[key] = []
-        saves[key].append(note)
-
+TASKS = read_tasks_from_file()
 
 @bot.message_handler(commands=["help"])
 def help(message):
     bot.send_message(message.chat.id, HELP)
 
+@bot.message_handler(commands=['add'])
+def exchange_command(message):
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    for row in TASKS:
+        keyboard.row(
+            telebot.types.InlineKeyboardButton(row, callback_data=f"add-{row}")
+        )
 
-@bot.message_handler(commands=["add", "todo"])
-def add(message):
-    command = message.text.split(maxsplit=2)
-    date = command[1].lower()
-    task = command[2]
-    add_todo(date, task)
-    text = "Задача " + task + " на " + date + " добавлена!"
-    bot.send_message(message.chat.id, text)
+    bot.send_message(message.chat.id, "Select the exercise:", reply_markup=keyboard)
 
+@bot.callback_query_handler(func=lambda call: True)
+def iq_callback(query):
+    data = query.data
+    if data.startswith('add-'):
+        get_add_callback(query)
+    if data.startswith('write-'):
+        get_write_callback(query)
 
-@bot.message_handler(commands=["save"])
-def save(message):
-    command = message.text.split(maxsplit=2)
-    key = command[1].lower()
-    note = command[2]
-    save_me(key, note)
-    text = "Запись " + note + " добавлена в хэштег " + key
-    write_saves_to_file(saves)
-    bot.send_message(message.chat.id, text)
+def get_add_callback(query):
+    bot.answer_callback_query(query.id)
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    task_name = query.data.replace('add-', "")
+    mult = TASKS[task_name] # Multiplier per task
+    for i in range(1, 10):
+        base = mult * i
+        keyboard.row(
+            telebot.types.InlineKeyboardButton(base, callback_data=f"write-{task_name}-{base}"),
+            telebot.types.InlineKeyboardButton(base + 1*mult, callback_data=f"write-{task_name}-{base+1*mult}"),
+            telebot.types.InlineKeyboardButton(base + 2*mult, callback_data=f"write-{task_name}-{base+2*mult}")
+        )
 
+    bot.send_message(query.message.chat.id, "Select the weight/count:", reply_markup=keyboard)
 
-# @bot.message_handler(commands=["random"])
-# def random_add(message):
-#     date = "cегодня"
-#     task = random.choice(random_tasks)
-#     add_todo(date, task)
-#     text = "На сегодня появилась задача " + task + "!"
-#     bot.send_message(message.chat.id, text)
+def get_write_callback(query):
+    _, task, weight = query.data.split("-", maxsplit=2)
+    add_exercise(task, weight)
+    bot.send_message(query.message.chat.id, query.data)
 
-
-@bot.message_handler(commands=["show", "print"])
-def show_tasks(message):
-    command = message.text.split(maxsplit=1)
-    date = command[1].lower()
-    text = ""
-    if date in tasks:
-        text = date.upper() + "\n"
-        for task in tasks[date]:
-            text = text + "-" + task + "\n"  # \n - перевод строки
-    else:
-        text = "День свободен"
-    bot.send_message(message.chat.id, text)
-
-
-@bot.message_handler(commands=["list"])
-def show_list(message):
-    key = message.text.split(maxsplit=1)[1]
-    text = ""
-    if key in saves:
-        text = key.upper() + "\n"
-        for note in saves[key]:
-            text = text + "-" + note + "\n"
-    else:
-        text = "Такого тэга ещё нет"
-    bot.send_message(message.chat.id, text)
-
-
-# функция polling начинает отправку запросов в телеграм с заданным токеном и спрашивает, нет ли для него сообщений.
-# Если сообщение есть, то вызывается обработка. Long polling - процесс постоянного обращения к серверам
 bot.polling(none_stop=True)
-
-# contrl^C - остановка бота
