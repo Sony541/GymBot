@@ -1,0 +1,5 @@
+
+/add - add today's exercise;
+/get - get given task log;
+
+/create - [WiP] - create new task;
