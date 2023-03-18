@@ -2,10 +2,10 @@ import json
 import random
 import telebot
 
-from Config import token
-from Database import read_help_from_file, read_tasks_from_file, add_exercise
+from Config import TOKEN
+from Database import read_help_from_file, read_tasks_from_file, add_exercise, load_exercise, log
 
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(TOKEN)
 
 HELP = read_help_from_file()
 TASKS = read_tasks_from_file()
@@ -14,15 +14,27 @@ TASKS = read_tasks_from_file()
 def help(message):
     bot.send_message(message.chat.id, HELP)
 
+@bot.message_handler(commands=['get'])
+def get_command(message):
+    make_tasks_keyboard(message, "get")
+
 @bot.message_handler(commands=['add'])
-def exchange_command(message):
+def add_command(message):
+    make_tasks_keyboard(message, "add")
+
+def make_tasks_keyboard(message, kb_type):
     keyboard = telebot.types.InlineKeyboardMarkup()
+
+    if TASKS is None:
+        bot.send_message(message.chat.id, "The task list is empty. Use /create command to create new tasks")
+        return
+    
     for row in TASKS:
         keyboard.row(
-            telebot.types.InlineKeyboardButton(row, callback_data=f"add-{row}")
+            telebot.types.InlineKeyboardButton(row, callback_data=f"{kb_type}-{row}")
         )
-
     bot.send_message(message.chat.id, "Select the exercise:", reply_markup=keyboard)
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def iq_callback(query):
@@ -31,6 +43,8 @@ def iq_callback(query):
         get_add_callback(query)
     if data.startswith('write-'):
         get_write_callback(query)
+    if data.startswith('get-'):
+        get_get_callback(query)
 
 def get_add_callback(query):
     bot.answer_callback_query(query.id)
@@ -49,7 +63,12 @@ def get_add_callback(query):
 
 def get_write_callback(query):
     _, task, weight = query.data.split("-", maxsplit=2)
-    add_exercise(task, weight)
+    add_exercise(task, weight, query.from_user.id)
     bot.send_message(query.message.chat.id, query.data)
+
+def get_get_callback(query):
+    _, task = query.data.split("-", maxsplit=1)
+    log(str(query))
+    bot.send_message(query.message.chat.id, load_exercise(task, query.from_user.id))
 
 bot.polling(none_stop=True)
