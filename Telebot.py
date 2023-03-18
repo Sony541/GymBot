@@ -1,17 +1,16 @@
 import random
 import telebot
-from Config import token
-from Database import read_help_from_file, read_saves_from_file, write_saves_to_file
+from cfg import TOKEN
+from Database import read_help_from_file, read_saves_from_file, read_tasks_from_file, write_saves_to_file, write_tasks_to_file
 
 
 # мы создаем переменную bot, в которой будут содержаться те функции, которые нам нужны для обработки и ответа на
 # сообщение
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(TOKEN)
 
 HELP = read_help_from_file()
 saves = read_saves_from_file()
-
-tasks = {}
+tasks = read_tasks_from_file()
 
 # random_tasks = ["sport", "grocery", "playing piano", "study"]
 
@@ -43,6 +42,7 @@ def add(message):
     date = command[1].lower()
     task = command[2]
     add_todo(date, task)
+    write_tasks_to_file(tasks)
     text = "Задача " + task + " на " + date + " добавлена!"
     bot.send_message(message.chat.id, text)
 
