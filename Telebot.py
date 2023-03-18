@@ -24,11 +24,6 @@ def add_todo(date, task):
         tasks[date].append(task)
 
 
-def write_tasks_to_file():
-    with open("Tasks.json", "w") as f:
-        json.dump(tasks, f, indent=4)
-
-
 def save_me(key, note):
     if key in saves:
         saves[key].append(note)
