@@ -3,6 +3,7 @@ import telebot
 from Config import token
 from Database import read_help_from_file, read_saves_from_file, write_saves_to_file
 
+
 # мы создаем переменную bot, в которой будут содержаться те функции, которые нам нужны для обработки и ответа на
 # сообщение
 bot = telebot.TeleBot(token)
@@ -11,7 +12,6 @@ HELP = read_help_from_file()
 saves = read_saves_from_file()
 
 tasks = {}
-
 
 # random_tasks = ["sport", "grocery", "playing piano", "study"]
 
@@ -22,6 +22,11 @@ def add_todo(date, task):
     else:
         tasks[date] = []
         tasks[date].append(task)
+
+
+def write_tasks_to_file():
+    with open("Tasks.json", "w") as f:
+        json.dump(tasks, f, indent=4)
 
 
 def save_me(key, note):
@@ -92,6 +97,18 @@ def show_list(message):
     else:
         text = "Такого тэга ещё нет"
     bot.send_message(message.chat.id, text)
+
+
+@bot.message_handler(command=["keys"])
+def show_keys(message):
+
+    bot.send_message(message.chat.id, print(list(saves.keys())))
+
+
+# @bot.message_handler(commands=["done"])
+# def remove_note(message):
+#     key = message.text.split(maxsplit=1)[1]
+#     if key in saves:
 
 
 # функция polling начинает отправку запросов в телеграм с заданным токеном и спрашивает, нет ли для него сообщений.
