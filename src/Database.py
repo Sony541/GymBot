@@ -1,9 +1,9 @@
 import json
 from time import time
 
-HELP_FILENAME = "Help.txt"
-TASKS_FILENAME = "Tasks.json"
-LOG_FILENAME = "Log.json"
+HELP_FILENAME = "data\Help.txt"
+TASKS_FILENAME = "data\Tasks.json"
+LOG_FILENAME = "data\Log.json"
 
 def add_exercise(task, weight):
     o = {

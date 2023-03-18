@@ -1,9 +1,7 @@
 .idea
 new.py
 
-Config.py
-Tasks.json
-Log.json
+.\data
 Core\ functions.py
 String\ dividing.py
 
