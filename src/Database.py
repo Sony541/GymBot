@@ -14,9 +14,10 @@ def log(text):
         f.write(str(f"{text}\n"))
 
 def add_exercise(task, weight, user_id):
+    current_time = strftime('%d.%m.%Y', localtime(time()))
     o = {
         "user_id": user_id,
-        "date": int(time()),
+        "date": current_time,
         "task": task,
         "weight": weight
     }
@@ -31,8 +32,7 @@ def load_exercise(task, user_id):
         if row:
             o = json.loads(row)
             if o["task"] == task:
-                time = strftime('%Y-%m-%d %H:%M', localtime(o["date"]))
-                res = f"{res}{time} - {o['weight']}\n"
+                res = f"{res}{o['date']} - {o['weight']}\n"
     return res
             
 def read_help_from_file():

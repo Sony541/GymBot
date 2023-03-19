@@ -51,12 +51,17 @@ def get_add_callback(query):
     keyboard = telebot.types.InlineKeyboardMarkup()
     task_name = query.data.replace('add-', "")
     mult = TASKS[task_name] # Multiplier per task
-    for i in range(1, 10):
-        base = mult * i
+    for i in range(0, 10):
+        base = mult * i * 3 # if mult == 10: 0 30 60 90 ...
+        weights = [
+            base + 1*mult,
+            base + 2*mult,
+            base + 3*mult,
+        ]
         keyboard.row(
-            telebot.types.InlineKeyboardButton(base, callback_data=f"write-{task_name}-{base}"),
-            telebot.types.InlineKeyboardButton(base + 1*mult, callback_data=f"write-{task_name}-{base+1*mult}"),
-            telebot.types.InlineKeyboardButton(base + 2*mult, callback_data=f"write-{task_name}-{base+2*mult}")
+            telebot.types.InlineKeyboardButton(weights[0], callback_data=f"write-{task_name}-{weights[0]}"),
+            telebot.types.InlineKeyboardButton(weights[1], callback_data=f"write-{task_name}-{weights[1]}"),
+            telebot.types.InlineKeyboardButton(weights[2], callback_data=f"write-{task_name}-{weights[2]}")
         )
 
     bot.send_message(query.message.chat.id, "Select the weight/count:", reply_markup=keyboard)
